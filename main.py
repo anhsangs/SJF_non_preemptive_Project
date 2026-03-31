@@ -30,7 +30,7 @@ def solve_sjf(processes):
             continue
             
         # Select the process with the shortest Burst Time (BT) from the Ready Queue
-        ready_queue.sort(key=lambda x: x.bt)
+        ready_queue.sort(key=lambda x: (x.bt, x.at))
         
         # Execute the selected process
         p = ready_queue.pop(0)
@@ -49,12 +49,12 @@ def solve_sjf(processes):
 if __name__ == "__main__":
     data = [
         Process("P1", 0, 7),
-        Process("P2", 2, 4),
+        Process("P2", 0, 4),
         Process("P3", 4, 1)
     ]
     
     results = solve_sjf(data)
     
-    print(f"{'ID':<5} | {'AT':<5} | {'BT':<5} | {'ST':<5} | {'FT':<5} | {'WT':<5} | {'TAT':<5}")
+    print(f"{'ID':<5} | {'Arrival Time':<5} | {'Burst Time':<5} | {'Start Time':<5} | {'Finish Time':<5} | {'Waiting Time':<5} | {'Turnaround Time':<5}")
     for p in results:
-        print(f"{p.pid:<5} | {p.at:<5} | {p.bt:<5} | {p.st:<5} | {p.ft:<5} | {p.wt:<5} | {p.tat:<5}")
+        print(f"{p.pid:<5} | {p.at:<12} | {p.bt:<10} | {p.st:<10} | {p.ft:<11} | {p.wt:<12} | {p.tat:<5}")
