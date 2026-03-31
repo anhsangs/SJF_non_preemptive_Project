@@ -1,54 +1,52 @@
 
 class Process:
     def __init__(self, pid, arrival_time, burst_time):
-        self.pid = pid          # Tên tiến trình (P1, P2...)
-        self.at = arrival_time  # Thời điểm đến (Arrival Time)
-        self.bt = burst_time    # Thời gian chạy (Burst Time)
-        self.st = 0             # Thời điểm bắt đầu (Start Time)
-        self.ft = 0             # Thời điểm kết thúc (Finish Time)
-        self.wt = 0             # Thời gian chờ (Waiting Time)
-        self.tat = 0            # Thời gian hoàn thành (Turnaround Time)
+        self.pid = pid          # Name Pr
+        self.at = arrival_time  # Arrival Time
+        self.bt = burst_time    # Burst Time
+        self.st = 0             # Start Time
+        self.ft = 0             # Finish Time
+        self.wt = 0             # Waiting Time
+        self.tat = 0            # Turnaround Time
 
 def solve_sjf(processes):
-    # Sắp xếp danh sách gốc theo thời điểm đến (AT)
+    # Sort the list by arrival time (AT)
     processes.sort(key=lambda x: x.at)
     
     ready_queue = []
     finished_processes = []
     current_time = 0
     
-    # Copy danh sách để không làm hỏng dữ liệu gốc
     temp_processes = processes[:]
 
     while temp_processes or ready_queue:
-        # 1. Đưa tất cả các tiến trình đã đến (AT <= current_time) vào hàng đợi sẵn sàng
+        # Add all arrived processes (AT <= current_time) to the ready queue
         while temp_processes and temp_processes[0].at <= current_time:
             ready_queue.append(temp_processes.pop(0))
         
-        # Trường hợp hàng đợi rảnh (CPU rảnh)
+        # In case the queue is empty (CPU is idle)
         if not ready_queue:
             current_time = temp_processes[0].at
             continue
             
-        # 2. Thuật toán SJF: Chọn tiến trình có Burst Time (BT) ngắn nhất trong Ready Queue
+        # Select the process with the shortest Burst Time (BT) from the Ready Queue
         ready_queue.sort(key=lambda x: x.bt)
         
-        # 3. Lấy tiến trình đó ra chạy (Lưu ý: Non-preemptive nên chạy hết BT)
+        # Execute the selected process
         p = ready_queue.pop(0)
         p.st = current_time
         p.ft = p.st + p.bt
         p.tat = p.ft - p.at
         p.wt = p.tat - p.bt
         
-        # Cập nhật thời gian hệ thống sau khi chạy xong
+        # Update the system time after the process finishes execution
         current_time = p.ft
         finished_processes.append(p)
         
     return finished_processes
 
-# TEST THỬ CODE CỦA BẠN
+# TEST
 if __name__ == "__main__":
-    # Tạo thử 3 tiến trình mẫu
     data = [
         Process("P1", 0, 7),
         Process("P2", 2, 4),
