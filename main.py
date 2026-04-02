@@ -28,7 +28,7 @@ def solve_sjf(processes):
             continue
             
         # Select the process with the shortest Burst Time (BT) from the Ready Queue
-        ready_queue.sort(key=lambda x: (x.bt, x.at))
+        ready_queue.sort(key=lambda x: (x.bt, x.at, x.pid))
         
         # Execute the selected process
         p = ready_queue.pop(0)
