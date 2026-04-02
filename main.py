@@ -9,6 +9,25 @@ class Process:
         self.wt = 0             # Waiting Time
         self.tat = 0            # Turnaround Time
 
+def calculate_times(process, current_time):
+    # Nếu CPU rảnh, bắt đầu khi tiến trình đến
+    if current_time < process.at:
+        current_time = process.at
+
+    # Start Time
+    process.st = current_time
+
+    # Finish Time
+    process.ft = process.st + process.bt
+
+    # Turnaround Time
+    process.tat = process.ft - process.at
+
+    # Waiting Time
+    process.wt = process.tat - process.bt
+
+    return process.ft
+
 def solve_sjf(processes):
     # Sort the list by arrival time (AT)
     processes.sort(key=lambda x: x.at)
