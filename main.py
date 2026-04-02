@@ -12,11 +12,9 @@ class Process:
 def solve_sjf(processes):
     # Sort the list by arrival time (AT)
     processes.sort(key=lambda x: x.at)
-    
     ready_queue = []
     finished_processes = []
     current_time = 0
-    
     temp_processes = processes[:]
 
     while temp_processes or ready_queue:
@@ -45,16 +43,36 @@ def solve_sjf(processes):
         
     return finished_processes
 
-# TEST
+def input_processes():
+    processes = []
+    try:
+        n = int(input("Number of processes: "))
+        for i in range(n):
+            auto_pid = f"P{i+1}"
+            print(f"\nProcess ID: {auto_pid} ")
+            at = int(input(f"Arrival Time: "))
+            bt = int(input(f"Burst Time: "))
+            processes.append(Process(auto_pid, at, bt))
+        return processes
+    except ValueError:
+        print("Error: Please enter integers only for AT and BT!")
+        return []
+
+# --- Main Process ---
 if __name__ == "__main__":
-    data = [
-        Process("P1", 0, 7),
-        Process("P2", 0, 4),
-        Process("P3", 4, 1)
-    ]
+    print("Algorithm SJF (Shortest Job First) ")
     
-    results = solve_sjf(data)
+    data = input_processes()
     
-    print(f"{'ID':<5} | {'Arrival Time':<5} | {'Burst Time':<5} | {'Start Time':<5} | {'Finish Time':<5} | {'Waiting Time':<5} | {'Turnaround Time':<5}")
-    for p in results:
-        print(f"{p.pid:<5} | {p.at:<12} | {p.bt:<10} | {p.st:<10} | {p.ft:<11} | {p.wt:<12} | {p.tat:<5}")
+    if data:
+        results = solve_sjf(data)
+        
+        print("\n" + "="*80)
+        print(f"{'ID':<5} | {'AT':<5} | {'BT':<5} | {'ST':<5} | {'FT':<5} | {'WT':<5} | {'TAT':<5}")
+        print("-" * 80)
+        
+        for p in results:
+            print(f"{p.pid:<5} | {p.at:<5} | {p.bt:<5} | {p.st:<5} | {p.ft:<5} | {p.wt:<5} | {p.tat:<5}")
+        
+        print("="*80)
+  
