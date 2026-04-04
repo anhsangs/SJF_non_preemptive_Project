@@ -17,34 +17,29 @@ def calculate_averages(processes):
 
 # Algorithm SJF Non-preemptive
 def solve_sjf(processes):
+    # Sắp xếp theo Arrival Time ban đầu
     processes.sort(key=lambda x: x.at)
-
+    
     ready_queue = []
     finished_processes = []
     current_time = 0
     temp_processes = processes[:]
 
     while temp_processes or ready_queue:
-
-        # Add the arrived process to the queue
+        # 1. Đưa tất cả các tiến trình đã đến vào hàng đợi sẵn sàng
         while temp_processes and temp_processes[0].at <= current_time:
             ready_queue.append(temp_processes.pop(0))
 
-        # CPU is idle
+        # 2. Xử lý trường hợp CPU nhàn rỗi (không có tiến trình nào trong queue)
         if not ready_queue:
             current_time = temp_processes[0].at
             continue
 
-        # Select the process with the shortest burst time
+        # 3. Chọn tiến trình ngắn nhất (SJF). Nếu bằng BT, ưu tiên AT, rồi đến PID
         ready_queue.sort(key=lambda x: (x.bt, x.at, x.pid))
-
         p = ready_queue.pop(0)
 
-        # CPU is idle before the process arrives
-        if current_time < p.at:
-            current_time = p.at
-
-        # Calculate times
+        # 4. Tính toán các mốc thời gian
         p.st = current_time
         p.ft = p.st + p.bt
         p.tat = p.ft - p.at
