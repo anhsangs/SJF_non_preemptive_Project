@@ -47,7 +47,7 @@ class SJF_GUI:
     def __init__(self, root):
         self.root = root
         self.root.title("SJF Scheduler - Gantt Chart Pro")
-        self.root.geometry("1300x850")
+        self.root.geometry("900x600")
         
         self.input_fields = []
 
@@ -57,64 +57,22 @@ class SJF_GUI:
 
         # Frame điều khiển phía trên
         top_frame = ttk.Frame(root)
-        top_frame.pack(pady=10, padx=30, fill="x")
+        top_frame.pack(pady=10)
         
-        ttk.Label(top_frame, text="Số tiến trình (1-10):", font=("Arial", 11)).pack(side="left")
-        self.n_entry = ttk.Entry(top_frame, width=8, font=("Arial", 11))
+        ttk.Label(top_frame, text="Số tiến trình (1-10):" ).pack(side="left")
+        self.n_entry = ttk.Entry(top_frame, width=8,)
         self.n_entry.pack(side="left", padx=10)
         self.n_entry.insert(0, "4")
         
         ttk.Button(top_frame, text="Tạo form nhập", command=self.create_inputs).pack(side="left", padx=5)
-        ttk.Button(root, text="🚀 CHẠY SJF & VẼ GANTT CHART", command=self.run_algorithm).pack(pady=10)
-
+        ttk.Button(root, text="🚀 Run", command=self.run_algorithm).pack(pady=5)
+        ttk.Button(root, text="🧹 Clear", command=self.clear_table).pack(pady=5)
+        ttk.Button(root, text="🎲 Random", command=self.random_data).pack(pady=5)
         # Container cho phần nhập liệu chi tiết
         self.form_container = ttk.LabelFrame(root, text="Nhập chi tiết tiến trình")
-        self.form_container.pack(padx=30, pady=5, fill="x")
+        self.form_container.pack(padx=20, pady=10, fill="x")
 
-        # Bảng kết quả tính toán
-        res_frame = ttk.LabelFrame(root, text="Kết quả tính toán chi tiết")
-        res_frame.pack(padx=30, pady=10, fill="x")
-        
-        cols = ("ID", "AT", "BT", "ST", "FT", "WT", "TAT")
-        self.tree = ttk.Treeview(res_frame, columns=cols, show="headings", height=5)
-        for col in cols:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100, anchor="center")
-        self.tree.pack(padx=10, pady=10, fill="x")
-
-        # Thêm vào dưới bảng kết quả Treeview
-        self.summary_frame = ttk.Frame(root)
-        self.summary_frame.pack(pady=5, padx=30, fill="x")
-        
-        self.label_awt = ttk.Label(self.summary_frame, text="Average Waiting Time: --", font=("Arial", 11, "bold"))
-        self.label_awt.pack(side="left", padx=20)
-        
-        self.label_atat = ttk.Label(self.summary_frame, text="Average Turnaround Time: --", font=("Arial", 11, "bold"))
-        self.label_atat.pack(side="left", padx=20)
-        # KHU VỰC GANTT CHART CÓ THANH CUỘN
-        gantt_frame = ttk.LabelFrame(root, text="Biểu đồ Gantt Chart (Cuộn để xem hết)")
-        gantt_frame.pack(padx=30, pady=10, fill="both", expand=True)
-
-        # Tạo thanh cuộn ngang và dọc
-        self.canvas_frame = ttk.Frame(gantt_frame)
-        self.canvas_frame.pack(fill="both", expand=True)
-
-        self.v_scroll = ttk.Scrollbar(self.canvas_frame, orient="vertical")
-        self.v_scroll.pack(side="right", fill="y")
-        
-        self.h_scroll = ttk.Scrollbar(gantt_frame, orient="horizontal")
-        self.h_scroll.pack(side="bottom", fill="x")
-
-        self.canvas = tk.Canvas(self.canvas_frame, bg="white", 
-                                xscrollcommand=self.h_scroll.set,
-                                yscrollcommand=self.v_scroll.set)
-        self.canvas.pack(side="left", fill="both", expand=True)
-
-        self.v_scroll.config(command=self.canvas.yview)
-        self.h_scroll.config(command=self.canvas.xview)
-
-        # Tạo mặc định
-        self.create_inputs()
+       self.create_inputs()
 
     def create_inputs(self):
         for widget in self.form_container.winfo_children():
@@ -125,121 +83,109 @@ class SJF_GUI:
             n = int(self.n_entry.get())
             if n < 1: n = 1
             if n > 10: n = 10
-        except: return
+        except:
+            return
 
-        # Header hàng nhập
         header = ttk.Frame(self.form_container)
         header.pack(fill="x", padx=10, pady=5)
-        ttk.Label(header, text="Process ID", width=15, font=("Arial", 9, "bold")).pack(side="left")
-        ttk.Label(header, text="Arrival Time (AT)", width=20, font=("Arial", 9, "bold")).pack(side="left")
-        ttk.Label(header, text="Burst Time (BT)", width=20, font=("Arial", 9, "bold")).pack(side="left")
+        ttk.Label(header, text="Process ID", width=15).pack(side="left")
+        ttk.Label(header, text="Arrival Time (AT)", width=20).pack(side="left")
+        ttk.Label(header, text="Burst Time (BT)", width=20).pack(side="left")
 
         for i in range(n):
             row = ttk.Frame(self.form_container)
             row.pack(fill="x", padx=10, pady=2)
             pid = f"P{i+1}"
             ttk.Label(row, text=pid, width=15).pack(side="left")
-            
+
             at_e = ttk.Entry(row, width=15)
-            at_e.insert(0, str(i*2)) # Mặc định 0, 2, 4, 6...
+            at_e.insert(0, str(i*2))
             at_e.pack(side="left", padx=15)
-            
+
             bt_e = ttk.Entry(row, width=15)
-            bt_e.insert(0, "5") # Mặc định 5
+            bt_e.insert(0, "5")
             bt_e.pack(side="left", padx=5)
-            
+
             self.input_fields.append((pid, at_e, bt_e))
 
     def run_algorithm(self):
         try:
-            # Thu thập dữ liệu từ các ô nhập liệu
             procs = [Process(pid, int(at.get()), int(bt.get())) for pid, at, bt in self.input_fields]
-            
-            # Chạy thuật toán SJF (từ algorithms.py)
-            results = solve_sjf(procs) 
-            
-            # 1. Cập nhật bảng Treeview
-            for item in self.tree.get_children(): 
-                self.tree.delete(item)
+            results = solve_sjf_non_preemptive(procs)
+
+            avg_wt = sum(p.wt for p in results) / len(results)
+            avg_tat = sum(p.tat for p in results) / len(results)
+
+            # Mở cửa sổ kết quả
+            result_win = tk.Toplevel(self.root)
+            result_win.title("Kết quả SJF")
+            result_win.geometry("800x600")
+
+            cols = ("ID", "AT", "BT", "ST", "FT", "WT", "TAT")
+            tree = ttk.Treeview(result_win, columns=cols, show="headings", height=8)
+            for col in cols:
+                tree.heading(col, text=col)
+                tree.column(col, width=80, anchor="center")
+            tree.pack(padx=10, pady=10, fill="x")
+
             for p in results:
-                self.tree.insert("", "end", values=(p.pid, p.at, p.bt, p.st, p.ft, p.wt, p.tat))
-            
-            # 2. Tính toán và hiển thị trung bình lên Summary Frame
-            avg_wt, avg_tat = calculate_averages(results)
-            
-            # Cập nhật nội dung cho các Label đã tạo trong __init__
-            self.label_awt.config(text=f"Average Waiting Time: {avg_wt:.2f}", foreground="#E74C3C")
-            self.label_atat.config(text=f"Average Turnaround Time: {avg_tat:.2f}", foreground="#2980B9")
-            
-            # 3. Vẽ Gantt Chart đa tầng
-            self.draw_gantt(results)
-            
-        except Exception as e:
-            messagebox.showerror("Lỗi", f"Đã xảy ra lỗi: {str(e)}")
-    def draw_gantt(self, processes):
-        """Vẽ Gantt Chart chuẩn - Mỗi process một hàng riêng, thẳng hàng, dễ nhìn"""
-        self.canvas.delete("all")
-        if not processes:
-            return
+                tree.insert("", "end", values=(p.pid, p.at, p.bt, p.st, p.ft, p.wt, p.tat))
 
-        scale_x = 42                    # 1 đơn vị thời gian = 42 pixel
-        rect_h = 58                     # chiều cao thanh
-        gap_y = 52                      # khoảng cách giữa các hàng
-        left_margin = 130
-        top_margin = 90
+            ttk.Label(result_win, text=f"Average Waiting Time: {avg_wt:.2f}",
+                      font=("Arial", 12, "bold")).pack(pady=5)
+            ttk.Label(result_win, text=f"Average Turnaround Time: {avg_tat:.2f}",
+                      font=("Arial", 12, "bold")).pack(pady=5)
 
-        max_time = max(p.ft for p in processes) + 4
-        total_width = left_margin + max_time * scale_x + 180
-        total_height = top_margin + len(processes) * (rect_h + gap_y) + 100
+            # Vẽ Gantt Chart trên cùng một dòng
+            canvas = tk.Canvas(result_win, bg="white", height=200)
+            canvas.pack(fill="x", padx=10, pady=10)
 
-        self.canvas.config(scrollregion=(0, 0, total_width, total_height))
+            scale_x = 50
+            rect_h = 50
+            left_margin = 50
+            y = 80
+            colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f", "#9b59b6", "#1abc9c"]
 
-        # Tiêu đề Gantt Chart
-        self.canvas.create_text(left_margin - 30, 45, 
-                               text="GANTT CHART - SJF Non-preemptive", 
-                               font=("Arial", 15, "bold"), anchor="w", fill="#2C3E50")
+            for i, p in enumerate(results):
+                color = colors[i % len(colors)]
+                x_start = left_margin + p.st * scale_x
+                width = (p.ft - p.st) * scale_x
 
-        # Trục thời gian (X-axis)
-        self.canvas.create_line(left_margin, top_margin - 15, 
-                               left_margin + max_time * scale_x, top_margin - 15, 
-                               width=3, fill="#2C3E50")
+                canvas.create_rectangle(x_start, y, x_start + width, y + rect_h,
+                                        fill=color, outline="black")
+                canvas.create_text(x_start + width/2, y + rect_h/2,
+                                   text=p.pid, fill="white", font=("Arial", 12, "bold"))
+                canvas.create_text(x_start, y + rect_h + 20, text=str(p.st))
+                canvas.create_text(x_start + width, y + rect_h + 20, text=str(p.ft))
 
-        # Các mốc thời gian
-        for t in range(0, max_time + 1, max(1, max_time // 12)):
-            x = left_margin + t * scale_x
-            self.canvas.create_line(x, top_margin - 22, x, top_margin - 8)
-            self.canvas.create_text(x, top_margin - 35, text=str(t), font=("Arial", 9))
+        except ValueError:
+            messagebox.showerror("Lỗi", "Vui lòng nhập số nguyên hợp lệ cho AT và BT!")
 
-        colors = ["#e74c3c", "#3498db", "#2ecc71", "#f1c40f", "#9b59b6", "#1abc9c"]
+    def clear_table(self):
+        clear_win = tk.Toplevel(self.root)
+        clear_win.title("Clear")
+        ttk.Label(clear_win, text="Form đã được xóa!", font=("Arial", 12)).pack(pady=20)
+        for widget in self.form_container.winfo_children():
+            widget.destroy()
+        self.input_fields.clear()
 
-        y = top_margin
+    def random_data(self):
+        for pid, at_entry, bt_entry in self.input_fields:
+            at_entry.delete(0, tk.END)
+            bt_entry.delete(0, tk.END)
+            at_entry.insert(0, random.randint(0, 10))
+            bt_entry.insert(0, random.randint(1, 10))
 
-        for i, p in enumerate(processes):
-            color = colors[i % len(colors)]
-            
-            x_start = left_margin + p.st * scale_x
-            width = (p.ft - p.st) * scale_x
+        rand_win = tk.Toplevel(self.root)
+        rand_win.title("Random Data")
+        ttk.Label(rand_win, text="Dữ liệu ngẫu nhiên đã được tạo!",
+                  font=("Arial", 12)).pack(pady=20)
 
-            # Vẽ thanh tiến trình
-            self.canvas.create_rectangle(x_start, y, x_start + width, y + rect_h,
-                                        fill=color, outline="#2C3E50", width=3)
-
-            # Tên process ở giữa thanh
-            self.canvas.create_text(x_start + width/2, y + rect_h/2,
-                                   text=p.pid, font=("Arial", 13, "bold"), fill="white")
-
-            # Nhãn process bên trái (rất quan trọng)
-            self.canvas.create_text(left_margin - 65, y + rect_h/2,
-                                   text=p.pid, font=("Arial", 12, "bold"), anchor="e")
-
-            # Thời gian bắt đầu và kết thúc
-            self.canvas.create_text(x_start, y + rect_h + 18, text=str(p.st),
-                                   font=("Arial", 9), anchor="n")
-            self.canvas.create_text(x_start + width, y + rect_h + 18, text=str(p.ft),
-                                   font=("Arial", 9), anchor="n")
-
-            y += rect_h + gap_y
 if __name__ == "__main__":
+    root = tk.Tk()
+    app = SJF_GUI(root)
+    root.mainloop()
+
     root = tk.Tk()
     app = SJF_GUI(root)
     root.mainloop()
