@@ -1,5 +1,4 @@
 #from models import Process
-
 # Algorithm to calculate averages
 def calculate_averages(processes):
     total_wt = 0

@@ -1,8 +1,8 @@
 class Process:
-    def __init__(self, pid, arrival_time, burst_time):
+    def __init__(self, pid, at, bt):
         self.pid = pid          # Process ID
-        self.at = arrival_time  # Arrival Time
-        self.bt = burst_time    # Burst Time
+        self.at = at            # Arrival Time
+        self.bt = bt            # Burst Time
         self.st = 0             # Start Time
         self.ft = 0             # Finish Time
         self.wt = 0             # Waiting Time

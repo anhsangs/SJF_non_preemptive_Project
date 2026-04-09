@@ -1,16 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from algorithms import solve_sjf
-# --- LỚP DỮ LIỆU TIẾN TRÌNH ---
-class Process:
-    def __init__(self, pid, at, bt):
-        self.pid = pid
-        self.at = at
-        self.bt = bt
-        self.st = 0
-        self.ft = 0
-        self.wt = 0
-        self.tat = 0
+from models import Process
 
 # --- GIAO DIỆN CHÍNH (CỬA SỔ 1) ---
 class SJF_Scheduler_App:
