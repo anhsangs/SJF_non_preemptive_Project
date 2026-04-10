@@ -1,69 +1,80 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox
+import ttkbootstrap as tb
+from ttkbootstrap.widgets.scrolled import ScrolledFrame
+from ttkbootstrap.constants import *
 from algorithms import solve_sjf, calculate_averages 
 from models import Process
 
-# --- GIAO DIỆN CHÍNH (CỬA SỔ 1) ---
+# --- MAIN INTERFACE ---
 class SJF_Scheduler_App:
     def __init__(self, root):
         self.root = root
-        self.root.title("SJF Scheduler - Nhập liệu")
-        self.root.geometry("500x600")
+        self.root.title(" CPU Scheduling: SJF Non-Preemptive ")
+        self.root.geometry("700x850")
         
         self.input_fields = []
 
-        # Phần nhập số tiến trình
-        top_frame = ttk.Frame(root)
-        top_frame.pack(pady=20, padx=20, fill="x")
-        
-        ttk.Label(top_frame, text="Số tiến trình:").pack(side="left")
-        self.n_entry = ttk.Entry(top_frame, width=10)
-        self.n_entry.pack(side="left", padx=10)
-        self.n_entry.insert(0, "4")
-        
-        ttk.Button(top_frame, text="Tạo form nhập", command=self.create_input_fields).pack(side="left")
+        # App Header
+        header_frame = tb.Frame(root)
+        header_frame.pack(fill="x", pady=(30, 20), padx=30)
+        tb.Label(header_frame, text="SHORTEST JOB FIRST (SJF)", font=("Segoe UI Black", 28, "bold"), bootstyle="warning").pack(anchor="w")
 
-        # Vùng chứa các ô nhập AT và BT
-        self.form_container = ttk.LabelFrame(root, text="Nhập Arrival Time (AT) và Burst Time (BT)")
-        self.form_container.pack(pady=10, padx=20, fill="both", expand=True)
+        # Input Toolbar
+        toolbar = tb.Frame(root)
+        toolbar.pack(fill="x", padx=30, pady=15)
         
-        # Nút chạy thuật toán
-        ttk.Button(root, text="🚀 Chạy thuật toán & Xem kết quả", command=self.run_algorithm).pack(pady=20)
+        tb.Label(toolbar, text="Number of Processes:", font=("Segoe UI", 12, "bold"), bootstyle="light").pack(side="left", padx=(0, 10))
+        
+        self.n_entry = tb.Entry(toolbar, width=8, font=("Segoe UI", 12), justify="center")
+        self.n_entry.pack(side="left", padx=10)
+        
+        btn_create = tb.Button(toolbar, text="INITIALIZE DATA", command=self.create_input_fields, bootstyle="primary", padding=(15, 8))
+        btn_create.pack(side="left", padx=15)
+
+        self.card_frame = tb.Frame(root)
+        self.card_frame.pack(pady=10, padx=30, fill="both", expand=True)
+        
+        self.scroll_frame = ScrolledFrame(self.card_frame, autohide=True)
+        self.scroll_frame.pack(fill="both", expand=True)
+
+        # Main Action Button (Run Algorithm)
+        self.btn_run = tb.Button(root, text="🚀 RUN ", command=self.run_algorithm, bootstyle="success", padding=(0, 15))
+        self.btn_run.pack(pady=30, padx=30, fill="x")
 
     def create_input_fields(self):
-        # Xóa các ô nhập cũ
-        for widget in self.form_container.winfo_children():
+        for widget in self.scroll_frame.winfo_children():
             widget.destroy()
         self.input_fields.clear()
 
         try:
             n = int(self.n_entry.get())
+            if n <= 0: raise ValueError
         except ValueError:
-            messagebox.showerror("Lỗi", "Vui lòng nhập số tiến trình hợp lệ")
+            messagebox.showerror("Error", "Please enter a valid positive integer!")
             return
 
-        # Header
-        header_frame = ttk.Frame(self.form_container)
-        header_frame.pack(fill="x", padx=5, pady=5)
-        ttk.Label(header_frame, text="PID", width=10).pack(side="left")
-        ttk.Label(header_frame, text="Arrival Time", width=15).pack(side="left")
-        ttk.Label(header_frame, text="Burst Time", width=15).pack(side="left")
+        # Create outer container for input table
+        table_container = tb.Labelframe(self.scroll_frame, text=" PROCESS PARAMETERS ", bootstyle="info")
+        table_container.pack(fill="x", padx=10, pady=10, ipadx=10, ipady=10)
 
-        # Tạo các dòng nhập liệu
+        table_container.grid_columnconfigure(0, weight=1)
+        table_container.grid_columnconfigure(1, weight=2)
+        table_container.grid_columnconfigure(2, weight=2)
+
+        tb.Label(table_container, text="PID", font=("Segoe UI", 12, "bold"), bootstyle="light").grid(row=0, column=0, pady=(0, 15))
+        tb.Label(table_container, text="Arrival Time (ms)", font=("Segoe UI", 12, "bold"), bootstyle="light").grid(row=0, column=1, pady=(0, 15))
+        tb.Label(table_container, text="Burst Time (ms)", font=("Segoe UI", 12, "bold"), bootstyle="light").grid(row=0, column=2, pady=(0, 15))
+
         for i in range(n):
-            row = ttk.Frame(self.form_container)
-            row.pack(fill="x", padx=5, pady=2)
+            pid_label = tb.Label(table_container, text=f"P{i+1}", font=("Segoe UI", 14, "bold"), bootstyle="info")
+            pid_label.grid(row=i+1, column=0, pady=8)
             
-            pid = f"P{i+1}"
-            ttk.Label(row, text=pid, width=10).pack(side="left")
+            at_entry = tb.Entry(table_container, font=("Segoe UI", 11), justify="center")
+            at_entry.grid(row=i+1, column=1, padx=20, pady=8, sticky="ew")
             
-            at_entry = ttk.Entry(row, width=12)
-            at_entry.pack(side="left", padx=5)
-            at_entry.insert(0, str(i*2)) # Giá trị mặc định gợi ý
-            
-            bt_entry = ttk.Entry(row, width=12)
-            bt_entry.pack(side="left", padx=5)
-            bt_entry.insert(0, "5") # Giá trị mặc định gợi ý
+            bt_entry = tb.Entry(table_container, font=("Segoe UI", 11), justify="center")
+            bt_entry.grid(row=i+1, column=2, padx=20, pady=8, sticky="ew")
             
             self.input_fields.append((at_entry, bt_entry))
 
@@ -71,90 +82,111 @@ class SJF_Scheduler_App:
         try:
             procs = []
             for i, (at_e, bt_e) in enumerate(self.input_fields):
-                at = int(at_e.get())
-                bt = int(bt_e.get())
-                procs.append(Process(f"P{i+1}", at, bt))
+                at_val, bt_val = at_e.get().strip(), bt_e.get().strip()
+                if not at_val or not bt_val:
+                    messagebox.showerror("Missing Data", f"Please provide full details for P{i+1}")
+                    return
+                procs.append(Process(f"P{i+1}", int(at_val), int(bt_val)))
             
-            if not procs:
-                messagebox.showwarning("Cảnh báo", "Vui lòng tạo form và nhập liệu trước!")
+            if not procs: 
+                messagebox.showwarning("Warning", "Please generate the form and input data first!")
                 return
-
+                
             results = solve_sjf(procs)
             self.show_results_window(results)
             
         except ValueError:
-            messagebox.showerror("Lỗi", "Vui lòng nhập số nguyên hợp lệ cho AT và BT!")
+            messagebox.showerror("Type Error", "Arrival Time and Burst Time must be integers!")
 
-    # --- CỬA SỔ KẾT QUẢ (CỬA SỔ 2) ---
+    # --- RESULTS WINDOW (DASHBOARD LAYOUT) ---
     def show_results_window(self, results):
-        result_win = tk.Toplevel(self.root)
-        result_win.title("Kết quả lập lịch SJF")
-        result_win.geometry("900x700")
+        res_win = tb.Toplevel(self.root)
+        res_win.title("SJF Analysis Report")
+        res_win.geometry("1050x850")
 
-        # 1. Bảng kết quả (Treeview)
-        cols = ("ID", "AT", "BT", "ST", "FT", "WT", "TAT")
-        tree = ttk.Treeview(result_win, columns=cols, show="headings", height=8)
-        for col in cols:
-            tree.heading(col, text=col)
-            tree.column(col, width=100, anchor="center")
-        tree.pack(padx=20, pady=10, fill="x")
+        master_scroll = ScrolledFrame(res_win, autohide=True)
+        master_scroll.pack(fill="both", expand=True, padx=40, pady=30)
 
-        for p in results:
-            tree.insert("", "end", values=(p.pid, p.at, p.bt, p.st, p.ft, p.wt, p.tat))
+        tb.Label(master_scroll, text="PERFORMANCE REPORT", font=("Segoe UI Black", 22, "bold"), bootstyle="warning").pack(anchor="w", pady=(0, 15))
 
-        # 2. Hiển thị trung bình
-        avg_wt, avg_tat = calculate_averages(results)
+        table_container = tb.Frame(master_scroll)
+        table_container.pack(fill="x", pady=(0, 20))
         
-        summary_frame = ttk.Frame(result_win)
-        summary_frame.pack(pady=10)
-        ttk.Label(summary_frame, text=f"Average Waiting Time: {avg_wt:.2f}ms", font=("Arial", 11, "bold"), foreground="#C0392B").pack(side="left", padx=20)
-        ttk.Label(summary_frame, text=f"Average Turnaround Time: {avg_tat:.2f}ms", font=("Arial", 11, "bold"), foreground="#2980B9").pack(side="left", padx=20)
+        # Changed from ScrolledFrame to normal Frame so it shows all rows
+        table_frame = tb.Frame(table_container)
+        table_frame.pack(fill="x", expand=True)
 
-        # 3. Biểu đồ Gantt
-        gantt_container = ttk.LabelFrame(result_win, text="Biểu đồ Gantt (Kéo ngang để xem)")
-        gantt_container.pack(padx=20, pady=10, fill="both", expand=True)
+        cols = ("ID", "ARRIVAL TIME", "BURST TIME", "START TIME", "FINISH TIME", "WAITING TIME", "TURNAROUND TIME")
+        col_width = 12 
 
-        h_scroll = ttk.Scrollbar(gantt_container, orient="horizontal")
+        # Draw Table Headers
+        for j, col in enumerate(cols):
+            tb.Label(table_frame, text=col, font=("Segoe UI", 10, "bold"), 
+                     bootstyle="inverse-primary", borderwidth=1, relief="solid", 
+                     padding=6, anchor="center", width=col_width).grid(row=0, column=j, sticky="nsew")
+
+        # Draw Table Rows
+        for i, p in enumerate(results):
+            bg_color = "#2b3e50" if i % 2 == 0 else "#3a4f63"
+            values = (p.pid, p.at, p.bt, p.st, p.ft, p.wt, p.tat)
+            for j, val in enumerate(values):
+                tb.Label(table_frame, text=str(val), font=("Segoe UI", 11), 
+                         background=bg_color, foreground="white", 
+                         borderwidth=1, relief="solid", padding=6, 
+                         anchor="center", width=col_width).grid(row=i+1, column=j, sticky="nsew")
+        # =========================================================
+        avg_wt, avg_tat = calculate_averages(results)
+        score_frame = tb.Frame(master_scroll)
+        score_frame.pack(fill="x", pady=10)
+
+        # Average Waiting Time Card - Reduced ipady and font size
+        card1 = tb.Frame(score_frame, bootstyle="danger")
+        card1.pack(side="left", fill="x", expand=True, padx=(0, 15), ipady=5)
+        tb.Label(card1, text="Average Waiting Time", font=("Segoe UI", 10, "bold"), bootstyle="inverse-danger").pack(pady=(5,0))
+        tb.Label(card1, text=f"{avg_wt:.2f} ms", font=("Segoe UI Black", 16), bootstyle="inverse-danger").pack()
+
+        # Average Turnaround Time Card - Reduced ipady and font size
+        card2 = tb.Frame(score_frame, bootstyle="info")
+        card2.pack(side="left", fill="x", expand=True, padx=(15, 0), ipady=5)
+        tb.Label(card2, text="Average Turnaround Time", font=("Segoe UI", 10, "bold"), bootstyle="inverse-info").pack(pady=(5,0))
+        tb.Label(card2, text=f"{avg_tat:.2f} ms", font=("Segoe UI Black", 16), bootstyle="inverse-info").pack()
+
+        # 3. GANTT CHART VISUALIZATION (Reduced height)
+        gantt_container = tb.Labelframe(master_scroll, text=" Gantt Chart (Timeline Visualization) ", bootstyle="light")
+        gantt_container.pack(fill="both", expand=True, pady=(25, 0))
+
+        h_scroll = tb.Scrollbar(gantt_container, orient="horizontal", bootstyle="warning-round")
         h_scroll.pack(side="bottom", fill="x")
 
-        canvas = tk.Canvas(gantt_container, bg="white", height=250, xscrollcommand=h_scroll.set)
-        canvas.pack(side="top", fill="both", expand=True)
+        canvas = tk.Canvas(gantt_container, bg="#2b3e50", height=120, highlightthickness=0, xscrollcommand=h_scroll.set)
+        canvas.pack(side="top", fill="both", expand=True, padx=10, pady=10)
         h_scroll.config(command=canvas.xview)
 
-        scale_x = 45      # Tỷ lệ thời gian
-        rect_h = 60       # Chiều cao khối
-        left_m = 50       # Lề trái
-        top_m = 100       # Lề trên trục thời gian
-        
+        scale_x, rect_h, left_m, top_m = 50, 45, 40, 35
         max_time = max(p.ft for p in results)
-        canvas.config(scrollregion=(0, 0, left_m + max_time * scale_x + 100, 250))
+        canvas.config(scrollregion=(0, 0, left_m + max_time * scale_x + 80, 120))
 
-        # Vẽ trục thời gian
-        canvas.create_line(left_m, top_m, left_m + max_time * scale_x, top_m, width=2, fill="#2C3E50")
+        # Render Time Axis
+        canvas.create_line(left_m, top_m, left_m + max_time * scale_x, top_m, width=2, fill="#df691a")
         for t in range(max_time + 1):
             x = left_m + t * scale_x
-            canvas.create_line(x, top_m, x, top_m - 8, fill="#34495E")
-            canvas.create_text(x, top_m - 20, text=str(t), font=("Arial", 9))
+            canvas.create_line(x, top_m, x, top_m - 8, fill="#df691a")
+            canvas.create_text(x, top_m - 20, text=str(t), font=("Segoe UI", 9, "bold"), fill="white")
 
-        colors = ["#E74C3C", "#3498DB", "#2ECC71", "#F1C40F", "#9B59B6", "#1ABC9C"]
+        colors = ["#FF3366", "#00CFFF", "#00E676", "#FFEA00", "#B338FF", "#FF9100", "#1DE9B6", "#F50057"]
 
-        # Vẽ các khối tiến trình
+        # Render Process Blocks
         for i, p in enumerate(results):
             color = colors[i % len(colors)]
-            x_start = left_m + p.st * scale_x
-            x_end = left_m + p.ft * scale_x
+            x_s, x_e = left_m + p.st * scale_x, left_m + p.ft * scale_x
             
-            canvas.create_rectangle(x_start, top_m + 20, x_end, top_m + 20 + rect_h, 
-                                     fill=color, outline="#2C3E50", width=2)
+            canvas.create_rectangle(x_s, top_m + 15, x_e, top_m + 15 + rect_h, fill=color, outline=color)
+            canvas.create_text(x_s + (x_e - x_s)/2, top_m + 15 + rect_h/2, text=p.pid, fill="#2b3e50", font=("Segoe UI Black", 12))
             
-            canvas.create_text(x_start + (x_end - x_start)/2, top_m + 20 + rect_h/2, 
-                                text=p.pid, fill="white", font=("Arial", 11, "bold"))
-            
-            canvas.create_text(x_start, top_m + 20 + rect_h + 15, text=str(p.st), font=("Arial", 9, "bold"))
-            canvas.create_text(x_end, top_m + 20 + rect_h + 15, text=str(p.ft), font=("Arial", 9, "bold"))
+            canvas.create_text(x_s, top_m + 15 + rect_h + 15, text=str(p.st), font=("Segoe UI", 9, "bold"), fill="#8899a6")
+            canvas.create_text(x_e, top_m + 15 + rect_h + 15, text=str(p.ft), font=("Segoe UI", 9, "bold"), fill="#8899a6")
 
-# --- CHẠY CHƯƠNG TRÌNH ---
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = tb.Window(themename="superhero") 
     app = SJF_Scheduler_App(root)
     root.mainloop()

@@ -1,17 +1,3 @@
-def calculate_averages(processes):
-    total_wt = 0
-    total_tat = 0
-
-    for p in processes:
-        total_wt += p.wt
-        total_tat += p.tat
-
-    avg_wt = total_wt / len(processes)
-    avg_tat = total_tat / len(processes)
-
-    return avg_wt, avg_tat
-
-
 # --- THUẬT TOÁN SJF NON-PREEMPTIVE ---
 def solve_sjf(processes):
     processes.sort(key=lambda x: x.at)
@@ -39,3 +25,16 @@ def solve_sjf(processes):
         current_time = p.ft
         finished_processes.append(p)
     return finished_processes
+
+def calculate_averages(processes):
+    total_wt = 0
+    total_tat = 0
+
+    for p in processes:
+        total_wt += p.wt
+        total_tat += p.tat
+
+    avg_wt = total_wt / len(processes)
+    avg_tat = total_tat / len(processes)
+
+    return avg_wt, avg_tat
