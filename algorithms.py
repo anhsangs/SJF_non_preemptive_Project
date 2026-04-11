@@ -1,4 +1,4 @@
-# --- THUẬT TOÁN SJF NON-PREEMPTIVE ---
+# --- SJF NON-PREEMPTIVE ALGORITHM ---
 def solve_sjf(processes):
     processes.sort(key=lambda x: x.at)
     ready_queue = []
