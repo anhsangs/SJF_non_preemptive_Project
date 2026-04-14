@@ -19,6 +19,7 @@ class SJF_Scheduler_App:
         header_frame = tb.Frame(root)
         header_frame.pack(fill="x", pady=(30, 20), padx=30)
         tb.Label(header_frame, text="SHORTEST JOB FIRST (SJF)", font=("Segoe UI Black", 28, "bold"), bootstyle="warning").pack(anchor="w")
+        tb.Label(header_frame, text="Non-Preemptive Process Scheduling Analysis", font=("Segoe UI", 12), bootstyle="light").pack(anchor="w", pady=(5,0))
 
         # Input Toolbar
         toolbar = tb.Frame(root)
@@ -38,8 +39,8 @@ class SJF_Scheduler_App:
         self.scroll_frame = ScrolledFrame(self.card_frame, autohide=True)
         self.scroll_frame.pack(fill="both", expand=True)
 
-        # Main Action Button (Run Algorithm)
-        self.btn_run = tb.Button(root, text="🚀 RUN ", command=self.run_algorithm, bootstyle="success", padding=(0, 15))
+        # Main Action Button 
+        self.btn_run = tb.Button(root, text="🚀 RUN ALGORITHM", command=self.run_algorithm, bootstyle="success", padding=(0, 15))
         self.btn_run.pack(pady=30, padx=30, fill="x")
 
     def create_input_fields(self):
@@ -54,7 +55,6 @@ class SJF_Scheduler_App:
             messagebox.showerror("Error", "Please enter a valid positive integer!")
             return
 
-        # Create outer container for input table
         table_container = tb.Labelframe(self.scroll_frame, text=" PROCESS PARAMETERS ", bootstyle="info")
         table_container.pack(fill="x", padx=10, pady=10, ipadx=10, ipady=10)
 
@@ -98,34 +98,33 @@ class SJF_Scheduler_App:
         except ValueError:
             messagebox.showerror("Type Error", "Arrival Time and Burst Time must be integers!")
 
-    # --- RESULTS WINDOW (DASHBOARD LAYOUT) ---
+    # --- RESULTS WINDOW ---
     def show_results_window(self, results):
         res_win = tb.Toplevel(self.root)
         res_win.title("SJF Analysis Report")
         res_win.geometry("1050x850")
 
+        # MASTER SCROLL FRAME
         master_scroll = ScrolledFrame(res_win, autohide=True)
         master_scroll.pack(fill="both", expand=True, padx=40, pady=30)
 
-        tb.Label(master_scroll, text="PERFORMANCE REPORT", font=("Segoe UI Black", 22, "bold"), bootstyle="warning").pack(anchor="w", pady=(0, 15))
+        tb.Label(master_scroll, text="PERFORMANCE ANALYTICS", font=("Segoe UI Black", 22, "bold"), bootstyle="warning").pack(anchor="w", pady=(0, 15))
 
+        # 1. EXCEL-LIKE RESULT TABLE
         table_container = tb.Frame(master_scroll)
         table_container.pack(fill="x", pady=(0, 20))
         
-        # Changed from ScrolledFrame to normal Frame so it shows all rows
         table_frame = tb.Frame(table_container)
         table_frame.pack(fill="x", expand=True)
 
         cols = ("ID", "ARRIVAL TIME", "BURST TIME", "START TIME", "FINISH TIME", "WAITING TIME", "TURNAROUND TIME")
         col_width = 12 
 
-        # Draw Table Headers
         for j, col in enumerate(cols):
             tb.Label(table_frame, text=col, font=("Segoe UI", 10, "bold"), 
                      bootstyle="inverse-primary", borderwidth=1, relief="solid", 
                      padding=6, anchor="center", width=col_width).grid(row=0, column=j, sticky="nsew")
 
-        # Draw Table Rows
         for i, p in enumerate(results):
             bg_color = "#2b3e50" if i % 2 == 0 else "#3a4f63"
             values = (p.pid, p.at, p.bt, p.st, p.ft, p.wt, p.tat)
@@ -134,39 +133,48 @@ class SJF_Scheduler_App:
                          background=bg_color, foreground="white", 
                          borderwidth=1, relief="solid", padding=6, 
                          anchor="center", width=col_width).grid(row=i+1, column=j, sticky="nsew")
-        # =========================================================
+
+        # 2. KPI SCORECARDS
         avg_wt, avg_tat = calculate_averages(results)
         score_frame = tb.Frame(master_scroll)
         score_frame.pack(fill="x", pady=10)
 
-        # Average Waiting Time Card - Reduced ipady and font size
         card1 = tb.Frame(score_frame, bootstyle="danger")
         card1.pack(side="left", fill="x", expand=True, padx=(0, 15), ipady=5)
         tb.Label(card1, text="Average Waiting Time", font=("Segoe UI", 10, "bold"), bootstyle="inverse-danger").pack(pady=(5,0))
         tb.Label(card1, text=f"{avg_wt:.2f} ms", font=("Segoe UI Black", 16), bootstyle="inverse-danger").pack()
 
-        # Average Turnaround Time Card - Reduced ipady and font size
         card2 = tb.Frame(score_frame, bootstyle="info")
         card2.pack(side="left", fill="x", expand=True, padx=(15, 0), ipady=5)
         tb.Label(card2, text="Average Turnaround Time", font=("Segoe UI", 10, "bold"), bootstyle="inverse-info").pack(pady=(5,0))
         tb.Label(card2, text=f"{avg_tat:.2f} ms", font=("Segoe UI Black", 16), bootstyle="inverse-info").pack()
 
-        # 3. GANTT CHART VISUALIZATION (Reduced height)
-        gantt_container = tb.Labelframe(master_scroll, text=" Gantt Chart (Timeline Visualization) ", bootstyle="light")
+        # =========================================================
+        # 3. GANTT CHART: MULTI-LANE VISUALIZATION
+        # =========================================================
+        gantt_container = tb.Labelframe(master_scroll, text=" GANTT CHART (Multi-Lane Timeline) ", bootstyle="light")
         gantt_container.pack(fill="both", expand=True, pady=(25, 0))
 
         h_scroll = tb.Scrollbar(gantt_container, orient="horizontal", bootstyle="warning-round")
         h_scroll.pack(side="bottom", fill="x")
 
-        canvas = tk.Canvas(gantt_container, bg="#2b3e50", height=120, highlightthickness=0, xscrollcommand=h_scroll.set)
+        # Calculate Dynamic Height based on number of processes
+        row_spacing = 100
+        top_m = 40
+        canvas_h = top_m + len(results) * row_spacing + 20
+
+        canvas = tk.Canvas(gantt_container, bg="#2b3e50", height=canvas_h, highlightthickness=0, xscrollcommand=h_scroll.set)
         canvas.pack(side="top", fill="both", expand=True, padx=10, pady=10)
         h_scroll.config(command=canvas.xview)
 
-        scale_x, rect_h, left_m, top_m = 50, 45, 40, 35
+        scale_x = 50 
+        rect_h = 40 
+        left_m = 70 
+        
         max_time = max(p.ft for p in results)
-        canvas.config(scrollregion=(0, 0, left_m + max_time * scale_x + 80, 120))
+        canvas.config(scrollregion=(0, 0, left_m + max_time * scale_x + 80, canvas_h))
 
-        # Render Time Axis
+        # Render Global Time Axis
         canvas.create_line(left_m, top_m, left_m + max_time * scale_x, top_m, width=2, fill="#df691a")
         for t in range(max_time + 1):
             x = left_m + t * scale_x
@@ -175,18 +183,47 @@ class SJF_Scheduler_App:
 
         colors = ["#FF3366", "#00CFFF", "#00E676", "#FFEA00", "#B338FF", "#FF9100", "#1DE9B6", "#F50057"]
 
-        # Render Process Blocks
+        # Render Each Process on its Own Row
         for i, p in enumerate(results):
             color = colors[i % len(colors)]
-            x_s, x_e = left_m + p.st * scale_x, left_m + p.ft * scale_x
+            row_y = top_m + 20 + i * row_spacing
             
-            canvas.create_rectangle(x_s, top_m + 15, x_e, top_m + 15 + rect_h, fill=color, outline=color)
-            canvas.create_text(x_s + (x_e - x_s)/2, top_m + 15 + rect_h/2, text=p.pid, fill="#2b3e50", font=("Segoe UI Black", 12))
+            x_at = left_m + p.at * scale_x
+            x_st = left_m + p.st * scale_x
+            x_ft = left_m + p.ft * scale_x
             
-            canvas.create_text(x_s, top_m + 15 + rect_h + 15, text=str(p.st), font=("Segoe UI", 9, "bold"), fill="#8899a6")
-            canvas.create_text(x_e, top_m + 15 + rect_h + 15, text=str(p.ft), font=("Segoe UI", 9, "bold"), fill="#8899a6")
+            # Label Process ID on the left
+            canvas.create_text(left_m - 35, row_y + rect_h/2, text=p.pid, fill="white", font=("Segoe UI Black", 14))
+            
+            # --- Draw Waiting Time (Gray) ---
+            if p.wt > 0:
+                canvas.create_rectangle(x_at, row_y, x_st, row_y + rect_h, fill="#6c757d", outline="#8899a6")
+                
+                # Draw the |----------| indicator below Waiting Time
+                line_y = row_y + rect_h + 20
+                canvas.create_line(x_at, line_y, x_st, line_y, fill="#8899a6", width=2)
+                canvas.create_line(x_at, line_y - 6, x_at, line_y + 6, fill="#8899a6", width=2) # Left tick
+                canvas.create_line(x_st, line_y - 6, x_st, line_y + 6, fill="#8899a6", width=2) # Right tick
+                
+                # Text "waiting time" below the line
+                canvas.create_text((x_at + x_st)/2, line_y + 12, text="waiting time", fill="#8899a6", font=("Segoe UI", 9, "italic"))
+                
+                # Labels "at" and "st" separate
+                canvas.create_text(x_at, row_y + rect_h + 8, text="at", fill="#8899a6", font=("Segoe UI", 10, "bold"))
+                canvas.create_text(x_st, row_y + rect_h + 8, text="st", fill="#8899a6", font=("Segoe UI", 10, "bold"))
+            else:
+                # ĐÃ SỬA CHỖ NÀY: Nếu Arrival = Start, chỉ hiện duy nhất chữ "st"
+                canvas.create_text(x_st, row_y + rect_h + 8, text="st", fill="#8899a6", font=("Segoe UI", 10, "bold"))
+
+            # --- Draw Burst Time (Colored) ---
+            canvas.create_rectangle(x_st, row_y, x_ft, row_y + rect_h, fill=color, outline=color)
+            canvas.create_text(x_st + (x_ft - x_st)/2, row_y + rect_h/2, text=p.pid, fill="#2b3e50", font=("Segoe UI Black", 12))
+            
+            # Label "ft" (Finish Time)
+            canvas.create_text(x_ft, row_y + rect_h + 8, text="ft", fill="#8899a6", font=("Segoe UI", 10, "bold"))
 
 if __name__ == "__main__":
     root = tb.Window(themename="superhero") 
     app = SJF_Scheduler_App(root)
     root.mainloop()
+
