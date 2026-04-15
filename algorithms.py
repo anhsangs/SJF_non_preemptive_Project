@@ -20,7 +20,7 @@ def solve_sjf(processes):
         p.st = current_time
         p.ft = p.st + p.bt
         p.tat = p.ft - p.at
-        p.wt = p.tat - p.bt
+        p.wt = p.st - p.at
 
         current_time = p.ft
         finished_processes.append(p)
